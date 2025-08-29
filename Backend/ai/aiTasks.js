@@ -88,11 +88,11 @@ tools: [
 
 async function callGeminiAPI(userPrompt) {
   try {
-    // One-shot prompt: provide one example before asking for the new concept
-    const oneShotPrompt = `
-You are an educational assistant. I will show you **one example** of how to explain a concept simply and clearly.
+    // Multi-shot prompt: provide multiple examples before the new concept
+    const multiShotPrompt = `
+You are an educational assistant. I will show you multiple examples of how to explain concepts simply and clearly.
 
-Example:
+Example 1:
 Concept: Photosynthesis
 Function Call:
 {
@@ -101,13 +101,31 @@ Function Call:
   "example": "A leaf uses sunlight to convert water and air into glucose (sugar) for energy and releases oxygen."
 }
 
+Example 2:
+Concept: Evaporation
+Function Call:
+{
+  "title": "Evaporation",
+  "explanation": "Evaporation is the process where liquid water turns into vapor due to heat. Think of it as water slowly 'disappearing' from a puddle into the air. It's a key part of the water cycle.",
+  "example": "Water from a wet cloth dries up in the sun because the water evaporates into the air."
+}
+
+Example 3:
+Concept: Gravity
+Function Call:
+{
+  "title": "Gravity",
+  "explanation": "Gravity is the force that pulls objects toward each other. It keeps us on the ground and governs how planets move around the sun. It's like an invisible magnet that attracts everything.",
+  "example": "An apple falls from a tree because gravity pulls it toward the Earth."
+}
+
 Now, using the same format, explain this new concept:
 
 Concept: ${userPrompt}
 `;
 
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: oneShotPrompt }] }]
+      contents: [{ role: "user", parts: [{ text: multiShotPrompt }] }]
     });
 
     const call = result.response.functionCalls?.[0];
@@ -125,5 +143,6 @@ Concept: ${userPrompt}
     throw err;
   }
 }
+
 
 module.exports = { callGeminiAPI };
