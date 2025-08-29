@@ -86,25 +86,28 @@ tools: [
 
 });
 
-// Function that the model can call
-async function explainTopic({ title, explanation, example }) {
-  return { title, explanation, example };
-}
 async function callGeminiAPI(userPrompt) {
   try {
-    // Zero-shot instruction
-    const zeroShotPrompt = `
-You are an educational assistant. Explain the concept below **clearly, simply, and concisely**, in 3-5 sentences, and give a small example.
-Return your response using the function "explainTopic" with these fields:
-- title
-- explanation
-- example
+    // One-shot prompt: provide one example before asking for the new concept
+    const oneShotPrompt = `
+You are an educational assistant. I will show you **one example** of how to explain a concept simply and clearly.
+
+Example:
+Concept: Photosynthesis
+Function Call:
+{
+  "title": "Photosynthesis",
+  "explanation": "Photosynthesis is how plants make their own food. They use sunlight, water, and carbon dioxide to create sugars (energy) and oxygen. It's like a plant's kitchen powered by the sun. This process is essential for life on Earth.",
+  "example": "A leaf uses sunlight to convert water and air into glucose (sugar) for energy and releases oxygen."
+}
+
+Now, using the same format, explain this new concept:
 
 Concept: ${userPrompt}
 `;
 
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: zeroShotPrompt }] }]
+      contents: [{ role: "user", parts: [{ text: oneShotPrompt }] }]
     });
 
     const call = result.response.functionCalls?.[0];
