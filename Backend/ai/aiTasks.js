@@ -90,23 +90,33 @@ tools: [
 async function explainTopic({ title, explanation, example }) {
   return { title, explanation, example };
 }
-
 async function callGeminiAPI(userPrompt) {
   try {
+    // Zero-shot instruction
+    const zeroShotPrompt = `
+You are an educational assistant. Explain the concept below **clearly, simply, and concisely**, in 3-5 sentences, and give a small example.
+Return your response using the function "explainTopic" with these fields:
+- title
+- explanation
+- example
+
+Concept: ${userPrompt}
+`;
+
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }]
+      contents: [{ role: "user", parts: [{ text: zeroShotPrompt }] }]
     });
 
-   const call = result.response.functionCalls?.[0];
-if (call && call.name === "explainTopic") {
-  const args = call.args || {};
-  return await explainTopic(args);
-}
+    const call = result.response.functionCalls?.[0];
+    if (call && call.name === "explainTopic") {
+      const args = call.args || {};
+      return await explainTopic(args);
+    }
 
-// fallback
-const text =
-  result.response.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
-return { raw: text };
+    // fallback
+    const text =
+      result.response.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+    return { raw: text };
   } catch (err) {
     console.error("Error in callGeminiAPI:", err.message);
     throw err;
